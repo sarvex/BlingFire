@@ -19,18 +19,14 @@ args = parser.parse_args()
 max_id = 0
 d = {}
 
-# input from stdin or the input file
-ih = sys.stdin
-if args.input:
-    ih = open(args.input, encoding="utf-8")
-
+ih = open(args.input, encoding="utf-8") if args.input else sys.stdin
 # see if we deal with pos.dict format or vocab.txt format
-if args.utf8_pos_dict or args.byte_pos_dict :
+if args.utf8_pos_dict or args.byte_pos_dict:
 
     # read the tagset
     with open(args.tagset, encoding="utf-8") as th:
         tagset = [tuple(s.split()) for s in th.read().splitlines() if s]
-        tag2id = dict((x, int(y)) for x, y in tagset)
+        tag2id = {x: int(y) for x, y in tagset}
 
     for line in ih:
 
@@ -42,7 +38,7 @@ if args.utf8_pos_dict or args.byte_pos_dict :
 
         text = t[0]
         tag = t[1]
-        if not(tag in tag2id):
+        if tag not in tag2id:
             raise Exception(f"ERROR: Unknown tag, line: {line}\n\n")
         id = tag2id[tag] + args.startid
 
@@ -59,38 +55,30 @@ if args.utf8_pos_dict or args.byte_pos_dict :
             text = ' '.join(t2)
         elif args.utf8_pos_dict:
             if text[0] == '▁':
-                text = ' ' + text[1:]
+                text = f' {text[1:]}'
 
         d[id] = text
 
-        if max_id < id:
-            max_id = id
-
-# vocab.txt format
+        max_id = max(max_id, id)
 else:
 
-    i = 0
-    for line in ih:
+    for i, line in enumerate(ih):
 
         text = line.rstrip()
         id = args.startid + i
-        i += 1
-
         # modify text so that starting segments have 0x20 in-front
         if args.bert_vocab:
-            if len(text) > 2 and text[0] == '#' and text[1] == '#':
-                text = text[2:]
-            else:
-                text = ' ' + text
-        else:
-            if text[0] == '▁':
-                text = ' ' + text[1:]
+            text = (
+                text[2:]
+                if len(text) > 2 and text[0] == '#' and text[1] == '#'
+                else f' {text}'
+            )
+        elif text[0] == '▁':
+            text = f' {text[1:]}'
 
         d[id] = text
 
-        if max_id < id:
-            max_id = id
-
+        max_id = max(max_id, id)
 # produce the output
 for id in range(max_id + 1):
     if id in d:

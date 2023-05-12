@@ -5,7 +5,7 @@ s = "Эpple pie. How do I renew my virtual smart card?: /Microsoft IT/ 'virtual'
 
 # one time load the model (we are using the one that comes with the package)
 h = blingfire.load_model(os.path.join(os.path.dirname(blingfire.__file__), "bert_base_tok.bin"))
-print("Model Handle: %s" % h)
+print(f"Model Handle: {h}")
 
 # use the model from one or more threads
 print(s)

@@ -53,7 +53,7 @@ def tokenize_without_bpe(text):
         token = "".join(
             byte_encoder[b] for b in token.encode("utf-8")
         )  # Maps all our bytes to unicode strings, avoiding controle tokens of the BPE (spaces in our case)
-        tokens.extend(bpe_token for bpe_token in token.split(" "))
+        tokens.extend(iter(token.split(" ")))
     return tokens
 
 
@@ -117,7 +117,7 @@ def tokenize_with_bpe(text):
         token = "".join(
             byte_encoder[b] for b in token.encode("utf-8")
         )  # Maps all our bytes to unicode strings, avoiding controle tokens of the BPE (spaces in our case)
-        bpe_tokens.extend(bpe_token for bpe_token in bpe(token).split(" "))
+        bpe_tokens.extend(iter(bpe(token).split(" ")))
     return bpe_tokens
 
 

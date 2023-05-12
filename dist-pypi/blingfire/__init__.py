@@ -35,7 +35,7 @@ def text_to_sentences(s):
     o_len = blingfire.TextToSentences(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
 
     # compute the unicode string from the UTF-8 bytes
@@ -55,7 +55,7 @@ def text_to_sentences_with_model(h, s):
     o_len = blingfire.TextToSentencesWithModel(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count), c_void_p(h))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
 
     # compute the unicode string from the UTF-8 bytes
@@ -75,7 +75,7 @@ def normalize_spaces(s, uSpace = 0x20):
     o_len = blingfire.NormalizeSpaces(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count), c_int(uSpace))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
 
     # compute the unicode string from the UTF-8 bytes
@@ -95,7 +95,7 @@ def text_to_words(s):
     o_len = blingfire.TextToWords(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
 
     # compute the unicode string from the UTF-8 bytes
@@ -115,7 +115,7 @@ def text_to_words_with_model(h, s):
     o_len = blingfire.TextToWordsWithModel(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count), c_void_p(h))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
 
     # compute the unicode string from the UTF-8 bytes
@@ -135,7 +135,7 @@ def word_hyphenation_with_model(h, s, uHy = 0x2D):
     o_len = blingfire.WordHyphenationWithModel(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count), c_void_p(h), c_int(uHy))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
 
     # compute the unicode string from the UTF-8 bytes
@@ -160,7 +160,7 @@ def text_to_hashes(s, word_n_grams, bucketSize):
     o_len = blingfire.TextToHashes(c_char_p(s_bytes), c_int(len(s_bytes)), byref(o_bytes), c_int(o_bytes_count), c_int(word_n_grams), c_int(bucketSize))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return None
 
     # return numpy array without copying
@@ -170,15 +170,15 @@ def text_to_hashes(s, word_n_grams, bucketSize):
 def text_to_token_with_offsets(s, text_to_token_f, split_byte):    
     # get the UTF-8 bytes
     s_bytes = s.encode("utf-8")
- 
+
     # allocate the output buffer
     o_bytes = create_string_buffer(len(s_bytes) * 2)
     o_bytes_count = len(o_bytes)
-    
+
     # buffers for word beging and end
     o_start_offsets = (c_int32 * o_bytes_count)()
     o_end_offsets = (c_int32 * o_bytes_count)()
- 
+
     # identify paragraphs
     o_len = text_to_token_f(
         c_char_p(s_bytes), c_int(len(s_bytes)), 
@@ -186,15 +186,15 @@ def text_to_token_with_offsets(s, text_to_token_f, split_byte):
         c_int(o_bytes_count))
 
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return '', []
 
     num_tokens = o_bytes.value.count(split_byte) + 1
-          
+
     utf8_offsets = [ o for start_end in zip(o_start_offsets[:num_tokens], o_end_offsets[:num_tokens]) for o in start_end]
-    
+
     string_offsets = []    
-    
+
     # Map the utf8 offsets to offsets in the original string - will break for "extended grapheme" 
     # This seems to be undoing the FAUtf8Size based mapping being done inside TextToWordsWithOffsets and 
     # TextToSentencesWithOffsets.     
@@ -206,17 +206,19 @@ def text_to_token_with_offsets(s, text_to_token_f, split_byte):
                 string_offsets.append(string_offset)
                 is_end_offset = not is_end_offset
             string_offset += 1
- 
+
     if len(string_offsets) < num_tokens * 2:
         string_offsets.append(len(s))
-            
-    assert len(string_offsets) == num_tokens * 2, '%s != %s' % (len(string_offsets), num_tokens * 2)
- 
-    token_begin_end = [ (b, e) for b, e in zip(string_offsets[::2], string_offsets[1::2])]
-        
+
+    assert (
+        len(string_offsets) == num_tokens * 2
+    ), f'{len(string_offsets)} != {num_tokens * 2}'
+
+    token_begin_end = list(zip(string_offsets[::2], string_offsets[1::2]))
+
     # compute the unicode string from the UTF-8 bytes
     out_string = o_bytes.value.decode('utf8') 
-    
+
     return out_string, token_begin_end
  
 def text_to_words_with_offsets(s):
@@ -230,8 +232,7 @@ def load_model(file_name):
     s_bytes = file_name.encode("utf-8")
     load_model_fn = blingfire.LoadModel
     load_model_fn.restype = c_void_p
-    h = load_model_fn(c_char_p(s_bytes))
-    return h
+    return load_model_fn(c_char_p(s_bytes))
 
 
 def free_model(h):
@@ -263,7 +264,7 @@ def ids_to_text(h, ids, skip_special_tokens = True, output_buffer_size = None):
     # compute the text from ids
     o_len = blingfire.IdsToText(c_void_p(h), c_void_p(ids.__array_interface__['data'][0]), len(ids), byref(o_bytes), c_int(o_bytes_count), c_bool(skip_special_tokens))
     # check if no error has happened
-    if -1 == o_len or o_len > o_bytes_count:
+    if o_len == -1 or o_len > o_bytes_count:
         return ''
     # compute the unicode string from the UTF-8 bytes
     return o_bytes.value.decode('utf-8')

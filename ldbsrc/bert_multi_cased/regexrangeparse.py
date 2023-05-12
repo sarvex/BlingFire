@@ -32,9 +32,9 @@ def parse_range(s):
         if i <= lens - 2 and s[i] == '\\' and s[i+1] == 'x':
             numLen = num_len(s, i + 2) + 2
             numStr = s[i+1:i+numLen]
-            num = int("0" + numStr, 16)
+            num = int(f"0{numStr}", 16)
             if num < 0 or num > __max_unicode_char__:
-                raise ValueError("Cannot parse range, 1: %s" % s)
+                raise ValueError(f"Cannot parse range, 1: {s}")
             if minus:
                 if start != -1:
                     for j in range(start, num + 1):
@@ -48,9 +48,9 @@ def parse_range(s):
             i += numLen
         else:
             # TODO: add parsing for other cases
-            raise ValueError("Non hex number or range encountered, Cannot parse range, 2: %s" % s)
-            i += 1
-
+            raise ValueError(
+                f"Non hex number or range encountered, Cannot parse range, 2: {s}"
+            )
     if start != -1:
         res[start] = 1
 
@@ -66,7 +66,7 @@ def serialize_range(r):
         h = hex(i)[2:]
         c = 4 - len(h)
         while c > 0:
-            h = "0" + h
+            h = f"0{h}"
             c -= 1
         return '\\x' + h
 
@@ -77,13 +77,13 @@ def serialize_range(r):
             start = i
         elif r[i] == 0 and start != -1:
             if i - 1 != start:
-                res += num2hex(start) + "-" + num2hex(i-1)
+                res += f"{num2hex(start)}-{num2hex(i - 1)}"
             else:
                 res += num2hex(start)
             start = -1
     if start != -1:
         if __max_unicode_char__ != start:
-            res += num2hex(start) + "-" + num2hex(__max_unicode_char__)
+            res += f"{num2hex(start)}-{num2hex(__max_unicode_char__)}"
         else:
             res += num2hex(start)
     return res

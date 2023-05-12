@@ -52,7 +52,7 @@ def tokenize_without_bpe(text):
         token = "".join(
             byte_encoder[b] for b in token.encode("utf-8")
         )  # Maps all our bytes to unicode strings, avoiding controle tokens of the BPE (spaces in our case)
-        tokens.extend(bpe_token for bpe_token in token.split(" "))
+        tokens.extend(iter(token.split(" ")))
     return tokens
 
 
@@ -82,14 +82,14 @@ with open("./pos.dict.utf8", "w", encoding='utf-8') as d:
         for token, i in encoder.items():
 
             i = i + 1
-            if -1 == MinId or MinId > i:
+            if MinId == -1 or MinId > i:
                 MinId = i
-            if -1 == MaxId or MaxId < i:
+            if MaxId == -1 or MaxId < i:
                 MaxId = i
 
             # make rank to be equal to -ID
             rank = -1.0 * i
-            
+
             # read the rank from the bpe_ranks instead of using the id from a dictionary
             if token in bpe_ranks_merged:
                 rank = -1.0 * bpe_ranks_merged[token]
@@ -121,7 +121,7 @@ with open("./pos.dict.utf8", "w", encoding='utf-8') as d:
                     if IsFirst:
                         print(num, end="", file=d)
                     else:
-                        print(" " + str(num), end="", file=d)
+                        print(f" {str(num)}", end="", file=d)
                     IsFirst = False
 
                 print("\tWORD_ID_" + str(i) + "\t" + str(rank), file=d)
@@ -129,4 +129,4 @@ with open("./pos.dict.utf8", "w", encoding='utf-8') as d:
                 print("WARNING: token: \"" + token + "\": " + str(i-1) + " contains 0 byte, might cause problems during the dictionary compilation. Discarding...")
 
         for i in range(MinId, MaxId + 1):
-            print("WORD_ID_" + str(i) + " " + str(i), file=t)
+            print(f"WORD_ID_{str(i)} {str(i)}", file=t)

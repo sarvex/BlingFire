@@ -58,7 +58,7 @@ for line in sys.stdin:
         # change word hashes to ids and add word_count to all ngram hashes
         for i in range(len(ids)):
             for j in range(ngram_order):
-                if 0 == j:
+                if j == 0:
                     a[j][i] = f.get_word_id(str(ids[i]))
                 else:
                     a[j][i] += word_count

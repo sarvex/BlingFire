@@ -7,18 +7,18 @@ def token2regexp(token):
     reg = []
     chars = list(tok)
     for c in chars:
-        if c == '\\':
+        if c == '-':
+            reg.append("[\\-]")
+        elif c == '[':
+            reg.append("[\\[]")
+        elif c == '\\':
             reg.append("[\\x5C]")
         elif c == ']':
             reg.append("[\\]]")
-        elif c == '[':
-            reg.append("[\\[]")
         elif c == '^':
             reg.append("[\\x5E]")
-        elif c == '-':
-            reg.append("[\\-]")
         else:
-            reg.append("[" + c + "]")
+            reg.append(f"[{c}]")
 
     reg = "".join(reg)
 
@@ -46,5 +46,5 @@ with open("vocab.txt", "r", encoding='utf-8') as i:
                 if reg == "":
                     continue
 
-                print(" < " + anchor + reg + " > --> WORD_ID_" + str(id), file=f)
-                print("WORD_ID_" + str(id) + " " + str(id), file=t)
+                print(f" < {anchor}{reg} > --> WORD_ID_{str(id)}", file=f)
+                print(f"WORD_ID_{str(id)} {str(id)}", file=t)

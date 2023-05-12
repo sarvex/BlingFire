@@ -100,9 +100,6 @@ def load_gigawords(datapath):
             doc.append(" ".join(para))
             in_paragraph = False
             para = []
-        else:
-            pass
-
     return result
 
 
@@ -139,33 +136,27 @@ def write_to_textfile(data, lib_name):
     if os.path.exists(lib_name):
         os.remove(lib_name)
 
-    f = open(lib_name, "w+")
-    f.write("\n".join(data))
-    f.close()
+    with open(lib_name, "w+") as f:
+        f.write("\n".join(data))
 
 
 def benchmark_spacy(docset):
     print("running spacy benchmarking")
     nlp = spacy.load("en_core_web_sm", disable=["parser", "tagger", "ner"])
     tokenized_docs_raw = []
-    i = 0
     warm_up_time = time.time()  # default
-    for doc in docset:
+    for i, doc in enumerate(docset):
         if i == warm_up_until + 1:
             warm_up_time = time.time()  # end of warm up, start timing
         tokens = nlp(doc)
         tokenized_docs_raw.append(tokens)
-        i += 1
     print("------spacy: %s seconds for %d documents------" % ((time.time() - warm_up_time), len(docset) - warm_up_until))
 
     # output tokenization result to a text file, including warm-ups
     if output_tokenization_result:
         ready_to_write = []
         for raw_doc in tokenized_docs_raw:
-            doc_text = []
-            for word in raw_doc:
-                doc_text.append(word.text)
-
+            doc_text = [word.text for word in raw_doc]
             doc_text_string = " ".join(doc_text)
             ready_to_write.append(doc_text_string)
 
@@ -177,21 +168,16 @@ def benchmark_nltk(docset):
     print("running nltk benchmarking")
     tokenized_docs_raw = []
     warm_up_time = time.time()  # default
-    i = 0
-    for doc in docset:
+    for i, doc in enumerate(docset):
         if i == warm_up_until + 1:
             warm_up_time = time.time()  # end of warm up, start timing
         tokens = nltk.word_tokenize(doc)
         tokenized_docs_raw.append(tokens)
-        i += 1
     print("------nltk: %s seconds for %d documents------" % ((time.time() - warm_up_time), len(docset) - warm_up_until))
 
     # output tokenization result to a text file
     if output_tokenization_result:
-        ready_to_write = []
-        for raw_doc in tokenized_docs_raw:
-            ready_to_write.append(" ".join(raw_doc))
-
+        ready_to_write = [" ".join(raw_doc) for raw_doc in tokenized_docs_raw]
         write_to_textfile(ready_to_write, "benchmark_nltk.txt")
         print("Wrote tokenized docs to benchmark_nltk.txt")
 
@@ -200,13 +186,11 @@ def benchmark_blingfire(docset):
     print("running blingfire benchmarking")
     tokenized_docs_raw = []
     warm_up_time = time.time()  # default
-    i = 0
-    for doc in docset:
+    for i, doc in enumerate(docset):
         if i == warm_up_until + 1:
             warm_up_time = time.time()  # end of warm up, start timing
         tokens = text_to_words(doc)
         tokenized_docs_raw.append(tokens)
-        i += 1
     print("------blingfire: %s seconds for %d documents------" % ((time.time() - warm_up_time), len(docset) - warm_up_until))
 
     # output tokenization result to a text file

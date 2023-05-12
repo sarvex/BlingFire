@@ -26,22 +26,21 @@ class TokenizationTest(tf.test.TestCase):
 
     for line in sys.stdin:
 
-        line = line.strip()
+      line = line.strip()
 
-        if not args.no_process:
-            tokens = tokenizer.tokenize(line)
-            ids = tokenizer.convert_tokens_to_ids(tokens)
-            padded_ids = [0]*128
-            for i in range(min(128, len(ids))):
-                padded_ids[i] = ids[i]
+      if not args.no_process:
+        tokens = tokenizer.tokenize(line)
+        ids = tokenizer.convert_tokens_to_ids(tokens)
+        padded_ids = [0]*128
+        for i in range(min(128, len(ids))):
+            padded_ids[i] = ids[i]
 
-            ids2 = text_to_ids(h, line, 128, 100)
-            if not np.array_equal(ids2, padded_ids):
-                if not args.no_output:
-                    print(line)
-                    print(np.array(padded_ids))
-                    print("produced:")
-                    print(ids2)
+        ids2 = text_to_ids(h, line, 128, 100)
+        if not np.array_equal(ids2, padded_ids) and not args.no_output:
+          print(line)
+          print(np.array(padded_ids))
+          print("produced:")
+          print(ids2)
 
     self.assertAllEqual([1], [1])
 

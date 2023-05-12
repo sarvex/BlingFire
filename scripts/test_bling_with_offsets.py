@@ -27,10 +27,10 @@ h = load_model(args.model)
 
 
 def find_first_different(ids1, ids2):
-    for i in range(0, min(len(ids1), len(ids2))):
-        if ids1[i] != ids2[i]:
-            return i
-    return -1
+    return next(
+        (i for i in range(0, min(len(ids1), len(ids2))) if ids1[i] != ids2[i]),
+        -1,
+    )
 
 
 unk = int(args.unk)
@@ -73,10 +73,10 @@ for line in sys.stdin:
                 if starts[i] == -1 and ends[i] == -1:
                     t = "^"
                 else:
-                    s = starts[i] if starts[i] >= 0 else 0
-                    e = ends[i] if ends[i] >= 0 else 0
+                    s = max(starts[i], 0)
+                    e = max(ends[i], 0)
                     t = utf8_s[s : e + 1].decode('utf-8')
-                print("[" + t + "]", end=' ')
+                print(f"[{t}]", end=' ')
             print()
 
             ids2 = None
@@ -90,7 +90,7 @@ for line in sys.stdin:
                     sp_tokens = sp.EncodeAsPieces(line)
                     print(sp_tokens)
                     e = find_first_different(ids, ids2)
-                    if -1 != e:
+                    if e != -1:
                         print("First difference: " + 
                                 str(ids[e]) + " vs " + str(ids2[e]) + ", " + 
                                 utf8_s[starts[e] : ends[e]+1].decode('utf-8') + " vs " + sp_tokens[e] + 
